@@ -1,4 +1,5 @@
 import { Anton, Poppins } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 
 import AvisoEntrada from "@/components/AvisoEntrada";
 import VoltarAoTopo from "@/components/VoltarAoTopo";
@@ -32,6 +33,7 @@ export default function RootLayout({ children }) {
             link compartilhado precisa ver o aviso igual a quem entra pela
             home. */}
         <AvisoEntrada />
+        <Analytics />
       </body>
     </html>
   );
