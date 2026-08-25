@@ -1,7 +1,6 @@
 import { Anton, Poppins } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
-
 import AvisoEntrada from "@/components/AvisoEntrada";
+import Consentimento from "@/components/Consentimento";
 import VoltarAoTopo from "@/components/VoltarAoTopo";
 import "./globals.css";
 
@@ -33,7 +32,11 @@ export default function RootLayout({ children }) {
             link compartilhado precisa ver o aviso igual a quem entra pela
             home. */}
         <AvisoEntrada />
-        <Analytics />
+        {/* ⚠️ O `<Analytics />` NÃO MORA MAIS AQUI. Ele é montado dentro do
+            `Consentimento`, e só com "aceito" gravado — montado no layout, a
+            faixa de consentimento perguntaria e a medição rodaria do mesmo
+            jeito. Ao mexer nisto, ler o cabeçalho de `lib/consentimento.js`. */}
+        <Consentimento />
       </body>
     </html>
   );

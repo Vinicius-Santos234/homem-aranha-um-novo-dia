@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # deixa rodar à mão pela aba Actions, útil para conferir um cache estranho
+  workflow_dispatch:
+
+# Um push em cima do outro cancela a execução anterior: sem isso, dois commits
+# seguidos põem duas builds na fila e a primeira já não interessa a ninguém.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    name: Lint e build (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      # uma versão falhando não cancela a outra — quero saber se é nas duas
+      fail-fast: false
+      matrix:
+        # 20 é o MÍNIMO que o Next 16 aceita (`engines.node >=20.9.0`); 22 é o
+        # que a Vercel usa por padrão. Testar só o de cima esconde o "funciona
+        # na minha máquina" ao contrário: código que exige uma API mais nova
+        # que o piso declarado.
+        node: [20, 22]
+
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@v4
+
+      - name: Preparar o Node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      # `npm ci` e não `npm install`: ele obedece ao package-lock à risca e
+      # falha se o lock estiver fora de sincronia com o package.json — que é
+      # exatamente o que se quer descobrir no CI, não em produção.
+      - name: Instalar as dependências
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # ⚠️ O BUILD É O TESTE DE VERDADE DESTE PROJETO. Não há suíte de testes:
+      # o que segura o site de pé são as checagens em tempo de desenvolvimento
+      # (as regras dos fixadores, em `src/lib/`) e o próprio build, que roda a
+      # geração estática das quatro rotas. Página que quebra na renderização
+      # derruba o build, e é aqui que isso aparece.
+      - name: Build de produção
+        run: npm run build

@@ -203,11 +203,22 @@ export default function AvisoEntrada() {
             </p>
           </div>
 
+          <p className="mt-7 font-mono text-[0.72rem] leading-relaxed text-bone-dim/50">
+            Sem cookies, sem cadastro.{" "}
+            <a
+              href="/privacidade"
+              className="text-bone-dim/80 underline decoration-bone/25 underline-offset-4 transition-colors hover:text-bone hover:decoration-bone"
+            >
+              O que o site guarda
+            </a>
+            .
+          </p>
+
           <button
             ref={botaoRef}
             type="button"
             onClick={fechar}
-            className="eyebrow mt-9 w-full rounded-full bg-bone px-6 py-4 text-ink transition-colors duration-200 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blood-400"
+            className="eyebrow mt-6 w-full rounded-full bg-bone px-6 py-4 text-ink transition-colors duration-200 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blood-400"
           >
             Entendi — entrar
           </button>
