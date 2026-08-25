@@ -109,10 +109,35 @@ function useVoltaDoSelo(textoRef) {
   return comprimento;
 }
 
-function MorphLine({ progress, from, to, antes, agora, colorBefore, colorAfter, delay }) {
+function MorphLine({
+  progress,
+  from,
+  to,
+  antes,
+  agora,
+  colorBefore,
+  colorAfter,
+  delay,
+  estatico = false,
+}) {
   const mid = from + (to - from) * 0.45 + delay;
   const beforeOpacity = useTransform(progress, [from + delay, mid], [1, 0]);
   const afterOpacity = useTransform(progress, [mid, to + delay], [0, 1]);
+
+  /* ⚠️ PARADO MOSTRA O "AGORA", NUNCA O "ANTES". Congelar no começo da rolagem
+     seria o mais parecido com o que o desktop vê no primeiro quadro — e seria
+     errado: as linhas dizem "Traje Tecnológico", "Lançador no pulso", "O mundo
+     sabia seu nome". Esse é o Peter de ANTES do feitiço. Quem não rola leria a
+     descrição do personagem que o filme não tem mais. */
+  if (estatico) {
+    return (
+      <li className="grid">
+        <span className="eyebrow col-start-1 row-start-1" style={{ color: colorAfter }}>
+          {agora}
+        </span>
+      </li>
+    );
+  }
 
   return (
     <li className="grid">
@@ -270,14 +295,34 @@ export default function Hero() {
   const seloComprimento = useVoltaDoSelo(textoSeloRef);
 
   const dim = "#9b9ba5";
+
+  /* ---- o herói no celular não tem coreografia ----
+     ⚠️ ISTO É DECISÃO DELE, TOMADA COM O APARELHO NA MÃO, e o motivo é os dois
+     lados da mesma moeda: a coreografia travava, e sem o clipe acompanhando
+     (que passou a tocar sozinho) ela deixou de fazer sentido.
+
+     O que estava caro aqui, em ordem: `padding` e `borderRadius` animando por
+     quadro — as duas são propriedades de LAYOUT e PINTURA, não de compositor,
+     e num elemento de tela cheia isso é relayout a cada quadro. Depois, quinze
+     valores escrevendo no DOM por quadro. Depois, o texto em glitch, que era
+     um `motion.span` por caractere.
+
+     ⚠️ `parado()` NÃO É "pega o valor inicial". Cada um é escolhido: o véu do
+     clipe vai a ZERO (no celular ele toca, então não pode ficar 28% escuro) e
+     a escala vai a 1 (ampliar 8% de graça não serve a nada quando não anima). */
+  const parado = (movel, valor) => (telaPequena ? valor : movel);
   const accent = "#e01b2c";
 
   return (
-    <section id="hero" ref={ref} className="relative h-[400vh]">
+    /* ⚠️ `h-screen` NO CELULAR, e não os 400vh. As quatro telas existiam para
+       dar curso à coreografia; sem ela, virariam três telas de rolagem em cima
+       da mesma imagem parada. O `sticky` de dentro fica sem curso e se comporta
+       como estático, que é o que se quer. */
+    <section id="hero" ref={ref} className="relative h-screen md:h-[400vh]">
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         {/* fundo: vermelho profundo com teia, visível só na moldura do card */}
-        <motion.div style={{ backgroundColor: pageBg }} className="absolute inset-0">
-          <motion.div style={{ opacity: webOpacity }} className="absolute inset-0 text-bone">
+        <motion.div style={{ backgroundColor: parado(pageBg, "#3a060f") }} className="absolute inset-0">
+          <motion.div style={{ opacity: parado(webOpacity, 0.14) }} className="absolute inset-0 text-bone">
             <SpiderWeb
               className="absolute -left-[22vw] top-[-18vh] h-[110vh] w-[110vh]"
               strokeWidth={1.4}
@@ -290,15 +335,15 @@ export default function Hero() {
         </motion.div>
 
         {/* card */}
-        <motion.div style={{ padding: cardPadding }} className="absolute inset-0">
+        <motion.div style={{ padding: parado(cardPadding, "84px 16px 16px") }} className="absolute inset-0">
           <motion.div
-            style={{ borderRadius: cardRadius }}
+            style={{ borderRadius: parado(cardRadius, 40) }}
             className="grain relative h-full w-full overflow-hidden bg-[#07070a]"
           >
             {/* --- o clipe, cobrindo o herói inteiro --- */}
             <motion.video
               ref={videoRef}
-              style={{ scale: videoScale, filter: telaPequena ? "none" : videoFilter }}
+              style={{ scale: parado(videoScale, 1), filter: telaPequena ? "none" : videoFilter }}
               className="absolute inset-0 h-full w-full object-cover"
               src="/corte.mp4"
               /* o clipe é pesado de propósito (4K, todo quadro é chave);
@@ -316,13 +361,13 @@ export default function Hero() {
                 CLIPE, não a composição. */}
             <motion.div
               aria-hidden
-              style={{ opacity: veuDoClipe }}
+              style={{ opacity: parado(veuDoClipe, 0) }}
               className="pointer-events-none absolute inset-0 bg-black"
             />
 
             {/* --- véus de leitura: sem eles o texto some sobre a imagem --- */}
             <motion.div
-              style={{ opacity: scrimOpacity }}
+              style={{ opacity: parado(scrimOpacity, 1) }}
               className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(3,3,4,0.86),rgba(3,3,4,0.45)_34%,rgba(3,3,4,0.2)_50%,rgba(3,3,4,0.6))]"
             />
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-[linear-gradient(to_top,rgba(3,3,4,0.85),transparent)]" />
@@ -334,8 +379,8 @@ export default function Hero() {
                 `content-between` joga para o rodapé) ficava embaixo dela.
                 Medido: o selo terminava a 48px do fim de uma tela de 844px. */}
             <div className="relative z-10 grid h-full grid-cols-12 content-between items-center gap-6 px-6 pb-28 pt-8 lg:content-center lg:px-14 lg:py-10">
-              <motion.div style={{ x: esquerdaX }} className="col-span-12 lg:col-span-4">
-                <motion.p style={{ opacity: colunaOpacity, color: dim }} className="eyebrow">
+              <motion.div style={{ x: parado(esquerdaX, 0) }} className="col-span-12 lg:col-span-4">
+                <motion.p style={{ opacity: parado(colunaOpacity, 1), color: dim }} className="eyebrow">
                   Nova York — quatro anos depois do feitiço
                 </motion.p>
 
@@ -346,11 +391,11 @@ export default function Hero() {
                 </h1>
 
                 <motion.div
-                  style={{ opacity: colunaOpacity }}
+                  style={{ opacity: parado(colunaOpacity, 1) }}
                   className="mt-6 h-[6px] w-24 bg-blood-500"
                 />
 
-                <motion.ul style={{ opacity: colunaOpacity }} className="mt-9 flex flex-col gap-4">
+                <motion.ul style={{ opacity: parado(colunaOpacity, 1) }} className="mt-9 flex flex-col gap-4">
                   {ANTES_E_AGORA.map((linha, i) => (
                     <MorphLine
                       key={linha.antes}
@@ -362,13 +407,14 @@ export default function Hero() {
                       agora={linha.agora}
                       colorBefore={dim}
                       colorAfter={accent}
+                      estatico={telaPequena}
                     />
                   ))}
                 </motion.ul>
               </motion.div>
 
               <motion.div
-                style={{ x: direitaX, opacity: colunaOpacity }}
+                style={{ x: parado(direitaX, 0), opacity: parado(colunaOpacity, 1) }}
                 className="col-span-12 lg:col-span-4 lg:col-start-9"
               >
                 <ScrollGlitchText
@@ -380,11 +426,12 @@ export default function Hero() {
                   colorTo="#f1ede6"
                   className="max-w-[34ch] text-[clamp(0.95rem,1.35vw,1.35rem)] font-light leading-relaxed lg:ml-auto lg:text-right"
                   salt={3}
+                  estatico={telaPequena}
                 />
 
                 <div className="mt-8 flex lg:mt-10 lg:justify-end">
                   <motion.div
-                    style={{ opacity: hintOpacity }}
+                    style={{ opacity: parado(hintOpacity, 1) }}
                     className="relative h-24 w-24 lg:h-32 lg:w-32"
                     aria-hidden
                   >

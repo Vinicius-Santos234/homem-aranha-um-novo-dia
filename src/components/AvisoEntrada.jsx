@@ -24,8 +24,9 @@ import { liberarEntrada } from "@/lib/entrada";
  */
 
 /* Muda quando o texto mudar: quem já leu a versão anterior volta a ver o
-   aviso, em vez de ficar com um "li isso" que vale para outro texto. */
-const VERSAO = "1";
+   aviso, em vez de ficar com um "li isso" que vale para outro texto.
+   2 — entrou a linha sobre o site render melhor no computador (25/08). */
+const VERSAO = "2";
 const CHAVE = "aviso-entrada";
 
 /* Tempo entre o preloader anunciar que acabou e o aviso entrar. A saída dele
@@ -115,7 +116,15 @@ export default function AvisoEntrada() {
     if (!visivel) return;
 
     document.documentElement.classList.add("rolagem-travada");
-    botaoRef.current?.focus();
+
+    /* ⚠️ `preventScroll` NÃO É DETALHE — SEM ELE O AVISO SE AUTOSSABOTA. O
+       painel tem `max-h-[86vh]` com rolagem própria, e num celular o texto não
+       cabe. Dar foco no botão faz o navegador ROLAR o botão para dentro da
+       tela, e como ele é o último elemento, o painel abre no fim: some o
+       título e some a linha de spoiler, que é a única que pede decisão de quem
+       está lendo. Medido em 390×660 em 25/08, depois que entrou o parágrafo
+       sobre o site render melhor no computador. */
+    botaoRef.current?.focus({ preventScroll: true });
 
     const aoTeclar = (e) => {
       if (e.key === "Escape") {
@@ -182,6 +191,15 @@ export default function AvisoEntrada() {
               Os textos foram <strong className="font-semibold text-bone">gerados por IA</strong> a
               partir do enredo do filme. Eles e as imagens podem divergir do que de fato acontece
               na trama.
+            </p>
+
+            {/* Último de propósito: é conselho, não ressalva. Os três de cima
+                dizem o que o site É; este diz como aproveitá-lo melhor, e só
+                serve depois que a pessoa decidiu entrar. */}
+            <p>
+              Ele foi feito para ser visto{" "}
+              <strong className="font-semibold text-bone">no computador</strong>: a tela grande tem
+              animação comandada pela rolagem que o celular não recebe.
             </p>
           </div>
 

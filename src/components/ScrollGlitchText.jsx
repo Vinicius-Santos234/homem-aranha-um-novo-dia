@@ -47,6 +47,13 @@ export default function ScrollGlitchText({
   className = "",
   salt = 1,
   as: Tag = "p",
+  /* Sem rolagem comandando, o texto sai pronto e na cor de chegada.
+     ⚠️ NÃO É SÓ ESTÉTICA — É O CUSTO. Este componente cria UM `motion.span`
+     por caractere, cada um com duas `useTransform` assinadas na rolagem: num
+     parágrafo inteiro são centenas de valores recalculados e escritos no DOM
+     a cada quadro. Era um dos pesos do herói no celular. Parado, ele vira um
+     nó de texto e mais nada. */
+  estatico = false,
 }) {
   const words = useMemo(() => {
     const out = [];
@@ -57,6 +64,14 @@ export default function ScrollGlitchText({
     }
     return out;
   }, [text]);
+
+  if (estatico) {
+    return (
+      <Tag className={className} style={{ color: colorTo }}>
+        {text}
+      </Tag>
+    );
+  }
 
   const shared = { progress, from, to, colorFrom, colorTo, salt };
 
