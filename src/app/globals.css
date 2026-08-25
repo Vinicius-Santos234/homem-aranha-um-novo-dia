@@ -1,26 +1,333 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ------------------------------------------------------------------ *
+ *  UM NOVO DIA — design tokens
+ * ------------------------------------------------------------------ */
+@theme {
+  --color-bone: #f1ede6;
+  --color-bone-dim: #d8d2c8;
+  --color-ink: #0a0a0b;
+  --color-void: #030304;
+  --color-carvao: #101014;
+
+  /* Os acentos de personagem e de lugar NÃO moram aqui: cada capítulo carrega
+     a própria cor no dado (`src/lib/personagens.js`, `src/lib/lugares.js`) e
+     pinta por `style`. Token só para o que é do site inteiro.
+     Os tokens de papel/tecido da direção anterior saíram — estão em
+     `_arquivo/costurado-a-mao/LEIA-ME.md` se um dia voltarem. */
+
+  /* Só o que é usado. `blood-900` e `blood-600` saíram: nenhuma classe e
+     nenhum `var()` os citava. `blood-800` (#3a060f) fica porque o herói
+     interpola esse hex à mão em `pageBg` — o framer não sabe animar entre
+     duas `var()`, então lá o valor é literal e este token é a documentação
+     de onde ele veio. */
+  --color-blood-800: #3a060f;
+  --color-blood-700: #5c0a18;
+  --color-blood-500: #c1121f;
+  --color-blood-400: #e01b2c;
+
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-anton), "Arial Black", sans-serif;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background: var(--color-void);
+    color: var(--color-bone);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--color-blood-500);
+    color: var(--color-bone);
+  }
+
+  /* barra de rolagem discreta, no tom do site */
+  ::-webkit-scrollbar {
+    width: 9px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0a0507;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-blood-700);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-blood-500);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* tipografia de apoio: minúsculo, espaçado, caixa alta */
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  .display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+    line-height: 0.86;
+    text-transform: uppercase;
+  }
+
+  /* a faixa horizontal de lugar mostra a barra nativa de propósito — é ela que
+     avisa que dá para andar de lado. mas a barra global é vermelho-sangue, e
+     dentro de um lugar verde isso fica errado: aqui ela usa o acento do lugar */
+  .faixa-h::-webkit-scrollbar {
+    height: 10px;
+  }
+  .faixa-h::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.07);
+  }
+  .faixa-h::-webkit-scrollbar-thumb {
+    background: var(--acento-faixa, #8a8a94);
+    border-radius: 99px;
+  }
+  .faixa-h {
+    scrollbar-color: var(--acento-faixa, #8a8a94) rgba(255, 255, 255, 0.07);
+  }
+
+  /* ---- o selo "role a página" do herói ----
+     As duas animações daqui são INFINITAS e de velocidade constante, e por isso
+     moram no CSS e não no framer. Três motivos, nesta ordem:
+
+     1. o `@media (prefers-reduced-motion)` lá embaixo passa a valer de graça —
+        ele zera duração de animação CSS e não enxerga nada que o framer anime,
+        porque lá quem anima é JS;
+     2. rotação constante é trabalho de compositor: o framer animaria `rotate`
+        pelo `requestAnimationFrame` dele, gastando um quadro de JS para sempre
+        num enfeite que fica visível só no topo da página;
+     3. dá para conferir com `getAnimations()`. O que o framer roda por rAF não
+        aparece ali — foi assim que descobri, em 24/08, que o anel não estava
+        girando: a animação simplesmente não existia. */
+  @keyframes girar-selo {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .girar-selo {
+    transform-origin: 50% 50%;
+    animation: girar-selo 24s linear infinite;
+  }
+
+  /* A conta que desce o fio. O `-50%` do X vai DENTRO dos quadros-chave: uma
+     animação de `transform` sobrescreve o `-translate-x-1/2` do Tailwind, e sem
+     ele aqui a conta salta para fora do fio quando a animação começa. */
+  @keyframes descer-conta {
+    0% {
+      transform: translate(-50%, 0);
+      opacity: 0;
+    }
+    18% {
+      opacity: 1;
+    }
+    72% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate(-50%, 42px);
+      opacity: 0;
+    }
+  }
+  .descer-conta {
+    animation: descer-conta 2.2s ease-in-out infinite;
+  }
+
+  /* ---- a borda da foto ---------------------------------------------
+
+     ⚠️ DISSOLVER OS QUATRO LADOS ERA A CORREÇÃO ERRADA. Ela viveu aqui de
+     24/08 a 25/08 tentando resolver "a foto parece colada por cima", e o
+     defeito só ficava pior — a foto passou a parecer um adesivo com a borda
+     esfumaçada. Comparado na tela em 25/08, o motivo é este:
+
+     A FOTO NÃO DISSOLVIA NO FUNDO DO CAPÍTULO. Atrás dela mora o
+     `FundoCapitulo` — OUTRA foto do mesmo personagem, desfocada em 16px e a
+     55% de opacidade. Toda a faixa translúcida da borda compunha em cima
+     dessa segunda imagem. Não era uma foto sumindo na página: era uma dupla
+     exposição. Daí o halo cinzento em volta e os cantos virando névoa
+     arredondada, onde as duas máscaras cruzadas se multiplicam.
+
+     A foto OPACA esconde o fundo desfocado inteiro. Tirando a máscara, o
+     problema não é resolvido — ele deixa de existir. O que faz a foto
+     pertencer à página passa a ser a vinheta (por dentro), o fio de contorno
+     e a sombra (por fora): tudo em `Chapa.jsx`, tudo por cima da foto, nada
+     dependendo do que está atrás.
+
+     Sobrou UM caso em que dissolver continua certo, e é esta utilidade: a
+     foto que SANGRA a viewport (capa e citação). Ali a borda de cima e a de
+     baixo encostam no capítulo de verdade — e só elas. A esquerda e a direita
+     encostam na borda da TELA, onde não existe nada em que dissolver; o fade
+     lateral só escurecia as pontas sem motivo.
+
+     Uma camada de máscara só, então nada de `mask-composite`. Se um dia duas
+     voltarem, a lição de 25/08 é que a ORDEM DOS OPERADORES decide tudo — ela
+     vale para a camada da mesma posição, e a primeira é a de cima:
+
+       | valor | o que sai |
+       |---|---|
+       | (nenhum) | quadrado duro: as camadas se SOMAM, e a união é dura |
+       | `add, intersect` | só os CANTOS mordidos; as bordas seguem duras |
+       | `intersect, add` | fade nos quatro lados |
+
+     (`-webkit-` usa outras palavras para os mesmos dois operadores.)
+
+     ⚠️ O `--dissolve` é em PIXEL, e não nos 7% de antes. Em porcentagem cada
+     foto dissolvia numa distância diferente — 42px na citação, 63px na capa
+     larga — e a galeria inteira parecia instável sem ninguém saber por quê. */
+  .foto-sangra {
+    --dissolve: 80px;
+    --borda-suave: linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 var(--dissolve),
+      #000 calc(100% - var(--dissolve)),
+      transparent 100%
+    );
+    -webkit-mask-image: var(--borda-suave);
+    mask-image: var(--borda-suave);
+  }
+
+  /* Grão fino por cima da foto. O `.grain` do herói é forte demais para isto
+     (0,28); aqui o papel é só tirar a limpeza de arquivo digital que destoa
+     da textura do resto da página. */
+  .grao-foto::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.14;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  /* ---- o mural de cortiça ----------------------------------------
+     A superfície em que as polaroides da grade de lugares estão presas. Ela
+     existe porque a página inteira era preto chapado por trás de cinco cartões
+     de papel: com fita, clipe e alfinete nos cartões, faltava a coisa em que
+     eles estão espetados.
+
+     ⚠️ É TUDO GRADIENTE TILADO, E ISSO NÃO É PREGUIÇA — é a mesma regra da
+     `Chapa`: gradiente repetido o navegador pinta uma vez e carimba, e uma
+     textura de fundo não pode custar mais caro que o conteúdo dela. Foto de
+     cortiça daria mais realismo e custaria uma requisição mais o download,
+     para ficar atrás de tudo a 100% de largura.
+
+     ⚠️ OS `background-size` SÃO PRIMOS ENTRE SI DE PROPÓSITO. Camadas que
+     repetem no mesmo período criam uma grade visível — o olho acha o ladrilho
+     em segundos e a textura vira papel de parede. Com períodos que não batem,
+     o desenho só se repete no mínimo múltiplo comum, que aqui é maior que
+     qualquer tela. Ao mexer num número, escolher outro que não seja múltiplo
+     dos outros.
+
+     ⚠️ E PRIMOS ENTRE SI NÃO BASTA — foi o que a primeira versão errou. Cada
+     `radial-gradient` desenha UM ponto por ladrilho, então cada camada é, ela
+     mesma, uma grade regular. Com três camadas, a 3× de zoom dava para ver as
+     três grades. O que quebra é a QUANTIDADE: seis camadas de grão, com
+     tamanhos, posições e formatos diferentes, e nenhuma grade sobrevive à
+     soma. Custa o mesmo — ladrilho pequeno o navegador pinta uma vez e carimba.
+
+     Grão redondo também entrega: cortiça é grânulo achatado e irregular, então
+     metade das camadas é elipse.
+
+     As duas primeiras camadas são as manchas grandes (a variação de tom da
+     prancha); as seis últimas são o grão. */
+  .cortica {
+    background-color: #241a12;
+    background-image:
+      radial-gradient(ellipse 40% 32% at 30% 28%, rgba(168,124,80,0.10), transparent 70%),
+      radial-gradient(ellipse 34% 40% at 74% 66%, rgba(92,64,40,0.26), transparent 72%),
+      radial-gradient(circle at 22% 62%, rgba(198,152,102,0.12) 0 2px, transparent 3px),
+      radial-gradient(circle at 68% 18%, rgba(58,40,25,0.6) 0 3px, transparent 4px),
+      radial-gradient(ellipse 3px 2px at 12% 40%, rgba(52,35,22,0.55), transparent 70%),
+      radial-gradient(circle at 44% 84%, rgba(182,138,92,0.11) 0 2px, transparent 3px),
+      radial-gradient(ellipse 2px 3px at 55% 8%, rgba(206,160,110,0.10), transparent 70%),
+      radial-gradient(circle at 85% 55%, rgba(64,45,29,0.5) 0 2px, transparent 3px);
+    background-size:
+      187px 143px,
+      131px 167px,
+      53px 47px,
+      71px 61px,
+      89px 79px,
+      37px 43px,
+      67px 97px,
+      29px 31px;
+  }
+
+  /* O grão fino por cima — o mesmo ruído das fotos, mais fraco. É ele que tira
+     a limpeza de "gradiente CSS" e faz a prancha parecer material. */
+  .cortica::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.2;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  /* ---- trava de rolagem para sobreposições ----
+     ⚠️ É CLASSE, E NÃO `style.overflow` NO ELEMENTO, POR CAUSA DO PRELOADER.
+     Ele guarda o overflow de antes, tranca, e ao sair devolve o valor guardado
+     — que é string vazia. Se o aviso de entrada tivesse trancado por estilo
+     em linha nesse meio-tempo, a devolução do preloader destrancaria a página
+     por baixo de um diálogo aberto. Como classe, a devolução do preloader
+     apenas REMOVE a declaração em linha e a classe continua valendo. Os dois
+     podem trancar ao mesmo tempo sem combinar nada.
+
+     `body` junto porque o `body` do site já tem `overflow-x: hidden`; sem o
+     seletor mais específico ele venceria no eixo horizontal. */
+  .rolagem-travada,
+  .rolagem-travada body {
+    overflow: hidden;
+  }
+
+  /* Entrada do aviso. Em CSS e não no framer de propósito: o bloco de
+     `prefers-reduced-motion` no fim deste arquivo já zera animação de CSS,
+     então quem pediu menos movimento recebe o painel pronto sem código
+     nenhum a mais. */
+  @keyframes surgir-aviso {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+  .surgir-aviso {
+    animation: surgir-aviso 0.4s var(--ease-out-expo) both;
+  }
+
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.28;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    /* ⚠️ `iteration-count: 1` não é redundante com a duração zerada. Sem ele,
+       uma animação `infinite` continua reiniciando a cada 0,001ms para sempre —
+       invisível, mas girando. Passou a importar em 24/08, quando o selo do
+       herói trouxe as duas primeiras animações infinitas do site. */
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
