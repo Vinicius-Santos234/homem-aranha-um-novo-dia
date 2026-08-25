@@ -32,9 +32,20 @@ import { useCallback, useEffect, useRef } from "react";
  *                   abaixo do topo — baixar megabytes de saída é banda à toa
  *                   para quem talvez nem chegue lá.
  * @param margem     antecedência do observador, em `rootMargin`
+ * @param ativo      `false` desliga o hook inteiro. Existe porque o herói
+ *                   escolhe em tempo de execução entre raspar (desktop) e
+ *                   tocar uma vez (celular, ver `video-uma-vez.js`) — e regra
+ *                   dos hooks manda chamar os dois sempre.
  * @returns ref para pendurar no `<video>`
  */
-export function useVideoRaspado({ progresso, de, ate, sobDemanda = false, margem = "2500px 0px" }) {
+export function useVideoRaspado({
+  progresso,
+  de,
+  ate,
+  sobDemanda = false,
+  margem = "2500px 0px",
+  ativo = true,
+}) {
   const videoRef = useRef(null);
   const alvoRef = useRef(0);
   const pendenteRef = useRef(false);
@@ -62,6 +73,7 @@ export function useVideoRaspado({ progresso, de, ate, sobDemanda = false, margem
   }, []);
 
   useMotionValueEvent(progresso, "change", (v) => {
+    if (!ativo) return;
     // Rede de segurança do carregamento sob demanda: se a seção já está sendo
     // raspada, o clipe precisa existir — não importa se o observador disparou.
     if (v > 0) pedidoRef.current?.();
@@ -73,7 +85,7 @@ export function useVideoRaspado({ progresso, de, ate, sobDemanda = false, margem
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !ativo) return;
 
     const aoTerminarBusca = () => {
       if (!pendenteRef.current) return;
@@ -138,7 +150,7 @@ export function useVideoRaspado({ progresso, de, ate, sobDemanda = false, margem
       video.removeEventListener("loadedmetadata", destravar);
       video.removeEventListener("seeked", aoTerminarBusca);
     };
-  }, [aplicarQuadro, sobDemanda, margem]);
+  }, [aplicarQuadro, sobDemanda, margem, ativo]);
 
   return videoRef;
 }

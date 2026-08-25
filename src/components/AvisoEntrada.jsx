@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { liberarEntrada } from "@/lib/entrada";
+
 /**
  * O aviso que abre o site.
  *
@@ -41,6 +43,7 @@ export default function AvisoEntrada() {
 
   const fechar = useCallback(() => {
     setVisivel(false);
+    liberarEntrada();
     try {
       window.localStorage.setItem(CHAVE, VERSAO);
     } catch {
@@ -56,7 +59,24 @@ export default function AvisoEntrada() {
     } catch {
       jaLeu = false;
     }
-    if (jaLeu) return;
+    /* ⚠️ QUEM JÁ LEU TAMBÉM PRECISA LIBERAR A TELA, e não pode ser aqui
+       mesmo: a tela de carregamento ainda pode estar no ar. Sem isto, o clipe
+       do herói no celular esperaria para sempre por uma liberação que nunca
+       viria — ver `lib/entrada.js`. */
+    if (jaLeu) {
+      const semPreloader = !document.querySelector("[data-preloader]");
+      if (semPreloader) {
+        liberarEntrada();
+        return;
+      }
+      const aoFimDoPreloader = () => liberarEntrada();
+      window.addEventListener("preloader:fim", aoFimDoPreloader, { once: true });
+      const redeDeSeguranca = setTimeout(liberarEntrada, 3600);
+      return () => {
+        window.removeEventListener("preloader:fim", aoFimDoPreloader);
+        clearTimeout(redeDeSeguranca);
+      };
+    }
 
     // o preloader só existe na home; sem ele, não há o que esperar
     const temPreloader = !!document.querySelector("[data-preloader]");

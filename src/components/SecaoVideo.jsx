@@ -11,6 +11,7 @@ import {
 import { useCallback, useEffect, useRef } from "react";
 
 import Chapa from "@/components/Chapa";
+import { useVideoUmaVez } from "@/lib/video-uma-vez";
 
 /* ------------------------------------------------------------------ *
  *  O fecho — o clipe toca sozinho, uma vez, quando a seção chega.
@@ -88,62 +89,6 @@ const MARGEM_DOWNLOAD = "2000px 0px";
  * Por isso o observador do download se desconecta assim que dispara — ele roda
  * uma vez, e sempre antes do outro (margem maior = cruza antes).
  */
-function useVideoUmaVez({ aoTerminar, margem = MARGEM_DOWNLOAD, visivel = VISIVEL_PARA_TOCAR } = {}) {
-  const videoRef = useRef(null);
-  /* Em ref, não em state: nada na tela depende disto, e um re-render aqui
-     remontaria a coreografia à toa. Quem escurece a seção no fim é uma
-     MotionValue, que também roda fora do ciclo de render. */
-  const terminouRef = useRef(false);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const marcarFim = () => {
-      terminouRef.current = true;
-      aoTerminar?.();
-    };
-    video.addEventListener("ended", marcarFim);
-
-    const download = new IntersectionObserver(
-      ([entrada]) => {
-        if (!entrada.isIntersecting) return;
-        download.disconnect();
-        video.preload = "auto";
-        video.load();
-      },
-      { rootMargin: margem },
-    );
-    download.observe(video);
-
-    const reproducao = new IntersectionObserver(
-      ([entrada]) => {
-        /* Terminou é terminou: não toca de novo nem mexe no quadro parado. */
-        if (terminouRef.current) return;
-
-        /* Sair da tela no meio do plano PAUSA, não reinicia — voltar continua
-           de onde parou. `play()` num vídeo que já acabou recomeçaria do zero,
-           e é exatamente isso que o `terminou` acima barra. */
-        if (entrada.isIntersecting) video.play().catch(() => {});
-        else video.pause();
-      },
-      { threshold: visivel },
-    );
-    reproducao.observe(video);
-
-    return () => {
-      download.disconnect();
-      reproducao.disconnect();
-      video.removeEventListener("ended", marcarFim);
-    };
-    /* ⚠️ `aoTerminar` PRECISA ser estável (venha de `useCallback`). Recriada a
-       cada render, ela derrubaria e remontaria os dois observadores, e o de
-       download chamaria `load()` outra vez — o que zera o vídeo no meio do
-       plano. */
-  }, [aoTerminar, margem, visivel]);
-
-  return videoRef;
-}
 
 export default function SecaoVideo() {
   const ref = useRef(null);
@@ -157,7 +102,11 @@ export default function SecaoVideo() {
     animate(apagar, BRILHO_NO_FIM, { duration: 1.8, ease: [0.4, 0, 0.2, 1] });
   }, [apagar]);
 
-  const videoRef = useVideoUmaVez({ aoTerminar: aoTerminarClipe });
+  const videoRef = useVideoUmaVez({
+    aoTerminar: aoTerminarClipe,
+    margem: MARGEM_DOWNLOAD,
+    visivel: VISIVEL_PARA_TOCAR,
+  });
 
   /* A rolagem não comanda mais o clipe — comanda só a chegada. O trecho vai de
      "a seção encosta na quina de baixo" até "a seção tomou a tela": é nele que

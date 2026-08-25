@@ -1,11 +1,13 @@
 "use client";
 
 import { motion, useMotionTemplate, useScroll, useSpring, useTransform } from "framer-motion";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import ScrollGlitchText from "@/components/ScrollGlitchText";
 import { SpiderWeb } from "@/components/art";
+import { assinarEntrada, lerEntrada, lerEntradaNoServidor } from "@/lib/entrada";
 import { useVideoRaspado } from "@/lib/video-raspado";
+import { useVideoUmaVez } from "@/lib/video-uma-vez";
 
 const PARAGRAFO =
   "Quatro anos desde que o mundo esqueceu o nome dele. Ele atravessa a multidão sem ser reconhecido, vê de longe as duas pessoas que mais ama — e o próprio corpo começa a mudar, como se o tempo sozinho também tivesse virado poder.";
@@ -173,7 +175,43 @@ export default function Hero() {
      media query — girar o aparelho reavalia sozinho. */
   const telaPequena = useSyncExternalStore(assinarTelaPequena, lerTelaPequena, () => false);
 
-  const videoRef = useVideoRaspado({ progresso: scrollYProgress, de: SCRUB_DE, ate: SCRUB_ATE });
+  /* ---- o clipe: raspado no desktop, tocado no celular ----
+     ⚠️ ISTO É DECISÃO DE DESEMPENHO, TOMADA COM O APARELHO NA MÃO. Raspar
+     custa uma BUSCA no clipe a cada quadro de rolagem, e busca é
+     decodificação. No desktop passa; num telefone, não passou — a rolagem do
+     herói travava mesmo depois de os filtros animados saírem do caminho.
+     No celular quem manda no tempo passa a ser o clipe, igual ao fecho.
+
+     ⚠️ OS DOIS HOOKS SÃO SEMPRE CHAMADOS — regra dos hooks. Quem escolhe é o
+     `ativo` de cada um, e a mesma referência do elemento vai para os dois
+     por um ref de callback. Trocar QUAL ref vai no elemento não funcionaria:
+     o hook que ganhasse o elemento depois já teria rodado o efeito dele com
+     `current` nulo, e não voltaria a rodar. */
+  const raspadoRef = useVideoRaspado({
+    progresso: scrollYProgress,
+    de: SCRUB_DE,
+    ate: SCRUB_ATE,
+    ativo: !telaPequena,
+  });
+
+  /* No celular o herói já está em cena quando a página nasce. Sem esperar, o
+     clipe correria debaixo da tela de carregamento e do aviso — ver
+     `lib/entrada.js`. */
+  const telaLivre = useSyncExternalStore(assinarEntrada, lerEntrada, lerEntradaNoServidor);
+  const umaVezRef = useVideoUmaVez({
+    ativo: telaPequena,
+    pronto: telaLivre,
+    margem: "0px",
+    visivel: 0.2,
+  });
+
+  const videoRef = useCallback(
+    (el) => {
+      raspadoRef.current = el;
+      umaVezRef.current = el;
+    },
+    [raspadoRef, umaVezRef],
+  );
 
   /* ---- o resto da coreografia ---- */
 
