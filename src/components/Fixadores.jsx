@@ -31,12 +31,11 @@ const GIRO = {
   grampo: { "topo-esquerda": -26, topo: 3, "topo-direita": 24, esquerda: -88, direita: 88 },
 };
 
-function Fita({ giro }) {
+function Fita() {
   return (
     <div
       className="h-[24px] w-[86px] md:h-[28px] md:w-[104px]"
       style={{
-        transform: `rotate(${giro}deg)`,
         backgroundColor: "rgba(216,206,183,0.42)",
         backgroundImage: [
           "repeating-linear-gradient(90deg, rgba(255,255,255,0.09) 0 2px, transparent 2px 5px)",
@@ -50,14 +49,14 @@ function Fita({ giro }) {
   );
 }
 
-function Clipe({ giro }) {
+function Clipe() {
   return (
     <svg
       width="24"
       height="54"
       viewBox="0 0 24 54"
       fill="none"
-      style={{ transform: `rotate(${giro}deg)`, filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }}
+      style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }}
     >
       <path
         d="M17.5 7v33a5.9 5.9 0 0 1-11.8 0V9.5a3.7 3.7 0 0 1 7.4 0v28.8a1.7 1.7 0 0 1-3.4 0V13"
@@ -69,14 +68,13 @@ function Clipe({ giro }) {
   );
 }
 
-function Alfinete({ giro, acento }) {
+function Alfinete({ acento }) {
   return (
     <div className="relative h-4 w-4">
       <div
         className="absolute left-1/2 top-1/2 h-[2px] w-[28px] origin-left"
         style={{
           background: "linear-gradient(90deg, #aeb4ba, #eef1f4)",
-          transform: `rotate(${giro}deg)`,
           boxShadow: "0 1px 2px rgba(0,0,0,0.55)",
         }}
       />
@@ -104,14 +102,14 @@ function Percevejo() {
   );
 }
 
-function Grampo({ giro }) {
+function Grampo() {
   return (
     <svg
       width="28"
       height="13"
       viewBox="0 0 28 13"
       fill="none"
-      style={{ transform: `rotate(${giro}deg)`, filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.6))" }}
+      style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.6))" }}
     >
       <path
         d="M2.6 11.4V3.4h22.8v8"
@@ -139,14 +137,12 @@ function Cantoneira({ lado }) {
   );
 }
 
-function Peca({ tipo, em, giro, acento }) {
-  if (tipo === "cantoneira") return <Cantoneira lado={em} />;
+function Peca({ tipo, acento }) {
   if (tipo === "percevejo") return <Percevejo />;
-  const g = giro ?? GIRO[tipo]?.[em] ?? 0;
-  if (tipo === "fita") return <Fita giro={g} />;
-  if (tipo === "clipe") return <Clipe giro={g} />;
-  if (tipo === "alfinete") return <Alfinete giro={g} acento={acento} />;
-  if (tipo === "grampo") return <Grampo giro={g} />;
+  if (tipo === "fita") return <Fita />;
+  if (tipo === "clipe") return <Clipe />;
+  if (tipo === "alfinete") return <Alfinete acento={acento} />;
+  if (tipo === "grampo") return <Grampo />;
   return null;
 }
 
@@ -156,16 +152,48 @@ export default function Fixadores({ fixadores, acento }) {
   return (
     <>
       {fixadores.map(({ tipo, em, giro }) => {
-        const mapa = tipo === "cantoneira" ? CANTO : ATRAVESSA.includes(tipo) ? DENTRO : NA_BORDA;
-        const posicao = mapa[em];
+        /* A cantoneira ENCAIXA no vértice — ela não é centrada no ponto como
+           as outras, senão fica metade para fora do papel. */
+        if (tipo === "cantoneira") {
+          const canto = CANTO[em];
+          if (!canto) return null;
+          return (
+            <div
+              key={`${tipo}-${em}`}
+              aria-hidden
+              className={`pointer-events-none absolute z-20 ${canto}`}
+            >
+              <Cantoneira lado={em} />
+            </div>
+          );
+        }
+
+        const posicao = (ATRAVESSA.includes(tipo) ? DENTRO : NA_BORDA)[em];
         if (!posicao) return null;
+        const g = giro ?? GIRO[tipo]?.[em] ?? 0;
+
         return (
           <div
             key={`${tipo}-${em}`}
             aria-hidden
             className={`pointer-events-none absolute z-20 flex h-0 w-0 items-center justify-center ${posicao}`}
           >
-            <Peca tipo={tipo} em={em} giro={giro} acento={acento} />
+            {/* ⚠️ DUAS COISAS NESTA CAIXA, E AS DUAS JÁ QUEBRARAM A PÁGINA.
+
+                `shrink-0`: a âncora é um flex de largura ZERO, e item de flex
+                encolhe por padrão. As peças são elementos vazios, então o
+                tamanho mínimo delas é zero — sem isto o flex esmaga TODAS para
+                `width: 0px` e a papelaria some do site inteiro.
+
+                O `rotate` fica AQUI e não dentro da peça: a caixa de uma fita
+                de 86px girada 84° mede 86px de largura se a rotação estiver no
+                filho, e ~24px se estiver nela mesma. É essa largura que conta
+                para a rolagem lateral — com a rotação no lugar errado, a
+                página passa a deslizar no celular por causa de uma caixa
+                invisível. */}
+            <div className="shrink-0" style={{ transform: `rotate(${g}deg)` }}>
+              <Peca tipo={tipo} acento={acento} />
+            </div>
           </div>
         );
       })}
