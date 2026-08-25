@@ -41,11 +41,11 @@
    As laterais ficam em 38% da altura e não em 50% de propósito: no meio exato
    o olho lê "botão de carrossel". */
 const NA_BORDA = {
-  "topo-esquerda": "left-[9%] top-0 -translate-x-1/2 -translate-y-1/2",
-  topo: "left-1/2 top-0 -translate-x-1/2 -translate-y-1/2",
-  "topo-direita": "right-[9%] top-0 translate-x-1/2 -translate-y-1/2",
-  esquerda: "left-0 top-[38%] -translate-x-1/2 -translate-y-1/2",
-  direita: "right-0 top-[38%] translate-x-1/2 -translate-y-1/2",
+  "topo-esquerda": "left-[9%] top-0",
+  topo: "left-1/2 top-0",
+  "topo-direita": "right-[9%] top-0",
+  esquerda: "left-0 top-[38%]",
+  direita: "right-0 top-[38%]",
 };
 
 /* Recuo em px e não em %: numa chapa de 4/6 um recuo de 5% fica três vezes
@@ -58,7 +58,7 @@ const NA_BORDA = {
    que é onde um alfinete espetado num quadro de cortiça fica mesmo. */
 const DENTRO = {
   "topo-esquerda": "left-5 top-5 md:left-6 md:top-6",
-  topo: "left-1/2 top-5 -translate-x-1/2 md:top-6",
+  topo: "left-1/2 top-5 md:top-6",
   "topo-direita": "right-5 top-5 md:right-6 md:top-6",
   esquerda: "left-5 top-[38%] md:left-6",
   direita: "right-5 top-[38%] md:right-6",
@@ -247,10 +247,23 @@ export default function Fixadores({ fixadores, acento }) {
         const posicao = mapa[em];
         if (!posicao) return null;
         return (
+          /* ⚠️ A CAIXA DA ÂNCORA TEM TAMANHO ZERO, E ISSO É O QUE TORNA A
+             GEOMETRIA PREVISÍVEL. Antes ela era do tamanho da peça e centrava
+             com `translate-x-1/2` — que é metade da largura NÃO ROTACIONADA. A
+             fita tem 86px de largura e gira 84°, ficando com 24px de largura
+             visual: era empurrada 43px para fora quando 12 bastavam. Medido em
+             25/08 num viewport de 390px, isso punha o `body` em 425px de
+             largura e deixava a página arrastar para o lado no celular — o
+             defeito que parecia "o botão do cabeçalho sai da tela".
+
+             Caixa de 0×0 com `flex items-center justify-center` centra o filho
+             no PONTO, seja qual for o tamanho dele, e a rotação acontece dentro
+             do filho em torno do próprio centro. O que sobra para fora passa a
+             ser exatamente metade da extensão visual da peça. */
           <div
             key={`${tipo}-${em}`}
             aria-hidden
-            className={`pointer-events-none absolute z-20 ${posicao}`}
+            className={`pointer-events-none absolute z-20 flex h-0 w-0 items-center justify-center ${posicao}`}
           >
             <Peca tipo={tipo} em={em} giro={giro} acento={acento} />
           </div>

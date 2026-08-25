@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useMotionTemplate, useScroll, useSpring, useTransform } from "framer-motion";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import { useRef } from "react";
 
 import Chapa from "@/components/Chapa";
@@ -26,16 +26,45 @@ import ScrollRevealText from "@/components/ScrollRevealText";
  * direita. Sem margem negativa, sem `100vw` — some junto com a barra de
  * rolagem.
  *
- * ⚠️ A GALERIA NÃO ENCOSTA MAIS NA BORDA DA TELA (25/08, a pedido). Ela tem
- * `md:px-14` só dela, e o bloco de texto acima continua sem padding — a
- * assimetria não veio do encosto, veio das colunas, então afastar 56px não
- * custa nada dela. O que o afastamento COMPRA é espaço para os fixadores: fita
- * e clipe montam na aresta e sobram uns 27px para fora do papel, e a rampa de
- * rolagem ainda cresce a chapa em até 6%. Encostada na borda, a peça do lado
- * de fora era cortada pelo `overflow-x: hidden` do `body`.
+ * ⚠️ A GALERIA NÃO ENCOSTA NA BORDA DA TELA, E O AFASTAMENTO É FUNCIONAL. Ela
+ * tem `px-10 md:px-14` só dela — o bloco de texto acima continua sem padding,
+ * porque a assimetria nunca veio do encosto, veio das colunas.
+ *
+ * O que o afastamento COMPRA é espaço para os fixadores: clipe e fita montam
+ * na aresta do papel e sobram até ~27px para fora dele, e a rampa de rolagem
+ * ainda cresce a chapa em 6% na entrada. Sem essa folga a peça do lado de fora
+ * é cortada pelo `overflow-x: hidden` do `body` — e, no celular, o corte vira
+ * ARRASTE PARA O LADO, porque telefone não respeita esse `hidden` como o
+ * desktop. Foi o defeito de 25/08 que parecia "o botão do cabeçalho sai da
+ * tela": não era o botão, era a página inteira podendo deslizar.
+ *
+ * ⚠️ No celular as três chapas viram `col-span-12`, então TODA peça lateral
+ * aponta para a borda da tela — não dá para escapar escolhendo o lado, como dá
+ * no desktop. É por isso que o `px-10` do celular não é menor que o `md:px-14`
+ * na proporção que se esperaria.
  */
 
-/** Rampa de brilho: a mídia entra quase apagada e acende ao atravessar a tela. */
+/**
+ * Rampa de brilho: a mídia entra quase apagada e acende ao atravessar a tela.
+ *
+ * ⚠️ ISTO JÁ FOI `filter: brightness()` E CUSTOU A PÁGINA INTEIRA NO CELULAR.
+ * São CINCO rampas por capítulo — a capa, as três chapas da galeria e a
+ * citação —, vinte na home. Filtro que muda de valor obriga o navegador a
+ * RASTERIZAR a subárvore de novo a cada quadro, e cada subárvore aqui é uma
+ * foto grande com moldura de papel, sombra, grão e até cinco fixadores. A
+ * rolagem travava; a página de lugares, que não tem nenhuma rampa, corria
+ * lisa — foi essa diferença que entregou o problema.
+ *
+ * O véu preto é EXATO, não é aproximação: escurecer com `brightness(b)` é
+ * multiplicar cada canal por `b`, e preto a `1 - b` por cima dá
+ * `c·b + 0·(1-b)` = o mesmo `c·b`. A diferença é que opacidade o compositor
+ * resolve sozinho, sem repintar nada.
+ *
+ * `scale` fica porque transformação também é trabalho de compositor.
+ *
+ * ⚠️ Ao usar: pendurar `escala` no `style` do `motion.div` E renderizar o
+ * `<VeuDaRampa>` dentro dele. Só a escala não escurece nada.
+ */
 function useRampa(ref) {
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -47,9 +76,29 @@ function useRampa(ref) {
     mass: 0.4,
     restDelta: 0.001,
   });
-  const brilho = useTransform(suave, [0, 1], [0.28, 1]);
+  // 0,72 = 1 − 0,28, o brilho de entrada que este véu substitui
+  const veu = useTransform(suave, [0, 1], [0.72, 0]);
   const escala = useTransform(suave, [0, 1], [1.06, 1]);
-  return { filter: useMotionTemplate`brightness(${brilho})`, scale: escala };
+  return { escala, veu };
+}
+
+/**
+ * O véu da rampa.
+ *
+ * ⚠️ `z-10`, ABAIXO DOS FIXADORES (z-20), e isso é escolha e não descuido. O
+ * véu cobre a caixa da chapa; fita e clipe montam na BORDA e sobram para fora
+ * dela. Num z acima, a peça ficaria escura na metade de dentro e acesa na de
+ * fora, cortada ao meio pela aresta do véu. Embaixo, a foto revela e a
+ * papelaria fica acesa o tempo todo — que é o que um alfinete faz mesmo.
+ */
+function VeuDaRampa({ opacidade }) {
+  return (
+    <motion.div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 z-10 bg-black"
+      style={{ opacity: opacidade }}
+    />
+  );
 }
 
 /**
@@ -74,7 +123,7 @@ function Capa({ personagem, ficha, corAnterior, total }) {
       ref={ref}
       className="relative z-10 flex min-h-[62vh] items-center overflow-hidden px-6 py-24 md:min-h-[86vh] md:py-28"
     >
-      <motion.div style={rampa} className="absolute inset-0">
+      <motion.div style={{ scale: rampa.escala }} className="absolute inset-0">
         <Chapa
           legenda={personagem.capa.legenda}
           src={personagem.capa.foto}
@@ -83,6 +132,7 @@ function Capa({ personagem, ficha, corAnterior, total }) {
           mostrarLegenda={false}
           borda="sangra"
         />
+        <VeuDaRampa opacidade={rampa.veu} />
       </motion.div>
 
       {/* véu de leitura — ver o aviso acima */}
@@ -142,7 +192,12 @@ function ItemGaleria({ item, acento, index }) {
           resultado. Mesmo motivo pelo qual a `scale` já morava aqui. */}
       <motion.div
         className="relative"
-        style={{ ...rampa, rotate: item.inclinacao ?? 0, aspectRatio: item.ratio, maxHeight: "72vh" }}
+        style={{
+          scale: rampa.escala,
+          rotate: item.inclinacao ?? 0,
+          aspectRatio: item.ratio,
+          maxHeight: "72vh",
+        }}
       >
         <Polaroide
           legenda={item.legenda}
@@ -157,6 +212,7 @@ function ItemGaleria({ item, acento, index }) {
             segura o canto do papel. Ancorados dentro da foto, eles ficariam
             presos a uma coisa que já está presa. */}
         <Fixadores fixadores={item.fixadores} acento={acento} />
+        <VeuDaRampa opacidade={rampa.veu} />
       </motion.div>
     </figure>
   );
@@ -198,7 +254,7 @@ function Citacao({ personagem }) {
          continuam nos 85vh exatos e só a do Justiceiro cresce. */
       className="relative z-10 flex min-h-[70vh] items-center overflow-hidden py-12 md:min-h-[85vh] md:py-16"
     >
-      <motion.div style={rampa} className="absolute inset-0">
+      <motion.div style={{ scale: rampa.escala }} className="absolute inset-0">
         <Chapa
           legenda={`${personagem.nome} — plano da citação`}
           src={personagem.fotoCitacao}
@@ -207,6 +263,7 @@ function Citacao({ personagem }) {
           mostrarLegenda={false}
           borda="sangra"
         />
+        <VeuDaRampa opacidade={rampa.veu} />
       </motion.div>
       <div className="absolute inset-0 bg-black/45" />
       <blockquote className="relative z-10 px-6 md:px-14 lg:px-20">
@@ -296,7 +353,7 @@ export default function CapituloPersonagem({ personagem, ficha, corAnterior, ind
           grade, o nome seguia grudado enquanto as chapas das colunas 1–7
           desciam por cima dele. Separando os blocos, o nome solta quando o
           texto acaba — que é onde ele tem que soltar. */}
-      <div className="relative z-10 grid grid-cols-12 gap-4 px-6 pb-24 md:gap-6 md:px-14 md:pb-40">
+      <div className="relative z-10 grid grid-cols-12 gap-4 px-10 pb-24 md:gap-6 md:px-14 md:pb-40">
         {personagem.galeria.map((item, i) => (
           <ItemGaleria key={item.legenda} item={item} acento={personagem.acento} index={i} />
         ))}

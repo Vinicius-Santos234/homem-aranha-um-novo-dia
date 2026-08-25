@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionTemplate, useScroll, useSpring, useTransform } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import ScrollGlitchText from "@/components/ScrollGlitchText";
 import { SpiderWeb } from "@/components/art";
@@ -130,6 +130,17 @@ function MorphLine({ progress, from, to, antes, agora, colorBefore, colorAfter, 
   );
 }
 
+/* Referências ESTÁVEIS de propósito: `useSyncExternalStore` reassina toda vez
+   que a função `subscribe` muda de identidade. Definidas dentro do componente,
+   seriam novas a cada renderização. */
+const TELA_PEQUENA = "(max-width: 767px)";
+const assinarTelaPequena = (aoMudar) => {
+  const mq = window.matchMedia(TELA_PEQUENA);
+  mq.addEventListener("change", aoMudar);
+  return () => mq.removeEventListener("change", aoMudar);
+};
+const lerTelaPequena = () => window.matchMedia(TELA_PEQUENA).matches;
+
 export default function Hero() {
   const ref = useRef(null);
 
@@ -148,6 +159,20 @@ export default function Hero() {
     restDelta: 0.0005,
   });
 
+  /* ⚠️ `useSyncExternalStore`, E NÃO INICIALIZADOR PREGUIÇOSO DE `useState`.
+     O `Preloader` usa o inicializador para uma decisão parecida e ali é
+     seguro — o valor dele só governa tempos DENTRO de um efeito e nunca chega
+     ao HTML. Aqui chega: ele decide o `style` do vídeo. Inicializador
+     preguiçoso roda no cliente durante a PRIMEIRA renderização, então o
+     servidor produziria `false` e o celular `true`, e a hidratação divergiria
+     no atributo `style` do elemento mais pesado da página.
+
+     `useSyncExternalStore` existe para exatamente isto: tem um instantâneo
+     separado para o servidor (o terceiro argumento), então os dois lados
+     renderizam igual e o React troca depois da hidratação. De quebra, assina a
+     media query — girar o aparelho reavalia sozinho. */
+  const telaPequena = useSyncExternalStore(assinarTelaPequena, lerTelaPequena, () => false);
+
   const videoRef = useVideoRaspado({ progresso: scrollYProgress, de: SCRUB_DE, ate: SCRUB_ATE });
 
   /* ---- o resto da coreografia ---- */
@@ -155,11 +180,30 @@ export default function Hero() {
   const pageBg = useTransform(p, [0, 0.5, 0.86], ["#3a060f", "#1e040a", "#050506"]);
   const webOpacity = useTransform(p, [0, 0.6], [0.14, 0.03]);
 
-  // correção de cor entrando: começa lavado e frio, fecha com o contraste do filme
+  /* Correção de cor entrando: começa lavado e frio, fecha com o contraste do
+     filme.
+
+     ⚠️ ESTE FILTRO ERA O PIOR PONTO DA PÁGINA NO CELULAR, e por um motivo que
+     se soma: ele mudava de valor a cada quadro EM CIMA DE UM VÍDEO QUE ESTÁ
+     SENDO RASPADO. Cada quadro pedia uma busca no clipe (decodificação) e uma
+     refiltragem da imagem decodificada. Uma coisa dessas o desktop aguenta;
+     um telefone, não.
+
+     O que mudou:
+     · o BRILHO saiu do filtro e virou véu preto com opacidade animada
+       (`veuDoClipe` abaixo). É exato, não é aproximação: `brightness(b)`
+       multiplica cada canal por `b`, e preto a `1-b` por cima dá o mesmo
+       resultado — só que opacidade o compositor resolve sem repintar.
+     · saturação e contraste NÃO têm equivalente em véu. Eles continuam
+       animando no desktop e ficam de fora no celular, onde os valores de
+       chegada (1,05 e 1,04) são indistinguíveis de não ter filtro nenhum.
+       Perde-se a entrada lavada num aparelho que não conseguia mostrá-la
+       fluida de qualquer jeito. */
   const sat = useTransform(p, [0.05, 0.6], [0.5, 1.05]);
-  const bri = useTransform(p, [0.05, 0.6], [0.72, 1]);
   const con = useTransform(p, [0.05, 0.6], [1.14, 1.04]);
-  const videoFilter = useMotionTemplate`saturate(${sat}) brightness(${bri}) contrast(${con})`;
+  const videoFilter = useMotionTemplate`saturate(${sat}) contrast(${con})`;
+  // 0,72 → 1 de brilho vira 0,28 → 0 de véu
+  const veuDoClipe = useTransform(p, [0.05, 0.6], [0.28, 0]);
   const videoScale = useTransform(p, [0, 1], [1.08, 1]);
 
   /* colunas se afastam e saem enquanto o clipe toma conta */
@@ -216,7 +260,7 @@ export default function Hero() {
             {/* --- o clipe, cobrindo o herói inteiro --- */}
             <motion.video
               ref={videoRef}
-              style={{ scale: videoScale, filter: videoFilter }}
+              style={{ scale: videoScale, filter: telaPequena ? "none" : videoFilter }}
               className="absolute inset-0 h-full w-full object-cover"
               src="/corte.mp4"
               /* o clipe é pesado de propósito (4K, todo quadro é chave);
@@ -227,6 +271,15 @@ export default function Hero() {
               playsInline
               preload="auto"
               aria-label="Peter Parker atrás das grades, levantando o olhar"
+            />
+
+            {/* O brilho da entrada, que saiu do filtro do vídeo — ver o aviso
+                lá em cima. Vem antes dos véus de leitura porque escurece o
+                CLIPE, não a composição. */}
+            <motion.div
+              aria-hidden
+              style={{ opacity: veuDoClipe }}
+              className="pointer-events-none absolute inset-0 bg-black"
             />
 
             {/* --- véus de leitura: sem eles o texto some sobre a imagem --- */}

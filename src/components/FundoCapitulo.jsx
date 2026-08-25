@@ -57,7 +57,16 @@ export default function FundoCapitulo({ personagem }) {
               src={midia.imagem}
               alt=""
               fill
-              sizes="100vw"
+              /* ⚠️ 45vw E NÃO 100vw, DE PROPÓSITO. Esta imagem existe só para
+                 ser borrada em 16px e mostrada a 55% de opacidade. Baixar a
+                 variante de tela cheia para depois destruir o detalhe é banda
+                 e memória jogadas fora — e são QUATRO delas na home, uma por
+                 capítulo, cada uma grudada ocupando a viewport inteira. Num
+                 celular isso pesa duas vezes: no download e na rasterização.
+                 O desfoque cobre a perda de resolução com folga: 16px de borrão
+                 é muito mais do que os ~2 pixels de suavização que a ampliação
+                 introduz. */
+              sizes="45vw"
               className="object-cover"
               priority={false}
             />

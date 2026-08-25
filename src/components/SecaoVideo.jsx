@@ -3,7 +3,6 @@
 import {
   animate,
   motion,
-  useMotionTemplate,
   useMotionValue,
   useScroll,
   useSpring,
@@ -188,12 +187,17 @@ export default function SecaoVideo() {
     [brilhoDeEntrada, apagar],
     ([entrada, fim]) => entrada * fim,
   );
-  const filtro = useMotionTemplate`brightness(${brilho})`;
+  /* ⚠️ Véu preto e não `filter: brightness()`. Mesmo motivo do herói e dos
+     capítulos: filtro que muda de valor rasteriza a subárvore de novo a cada
+     quadro, e aqui a subárvore é um vídeo. Preto a `1 - brilho` por cima dá
+     exatamente o mesmo resultado que multiplicar os canais por `brilho`, e a
+     opacidade o compositor resolve sozinho. */
+  const veu = useTransform(brilho, (b) => 1 - b);
 
   return (
     <section id="fecho" ref={ref} aria-label={TITULO} className="relative h-screen bg-void">
       <div className="absolute inset-0 overflow-hidden">
-        <motion.div style={{ filter: filtro, scale: escala }} className="absolute inset-0">
+        <motion.div style={{ scale: escala }} className="absolute inset-0">
           {VIDEO ? (
             <video
               ref={videoRef}
@@ -214,6 +218,12 @@ export default function SecaoVideo() {
               mostrarLegenda={false}
             />
           )}
+
+          <motion.div
+            aria-hidden
+            style={{ opacity: veu }}
+            className="pointer-events-none absolute inset-0 bg-black"
+          />
         </motion.div>
 
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(3,3,4,0.9),transparent_55%)]" />
