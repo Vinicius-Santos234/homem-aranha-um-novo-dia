@@ -1,24 +1,4 @@
-/**
- * O sinal do Homem-Aranha — o desenho da tela de carregamento.
- *
- * Vem de `Spider-Man_signal_(Print).svg`: um disco com a aranha VAZADA nele,
- * exportado pelo Illustrator como UM `<path>` preenchido com 44 subcaminhos.
- *
- * ⚠️ AQUI ELE ESTÁ QUEBRADO NOS 44, e não é firula: preenchido, o arquivo é
- * uma silhueta só e não há o que acender em sequência. Separado e traçado em
- * vez de preenchido, cada pedaço vira uma linha que pode ser desenhada no seu
- * tempo — que é o efeito pedido.
- *
- * ⚠️ A ORDEM NÃO É A DO ARQUIVO. O primeiro é o círculo de fora (é ele que
- * fecha a moldura), e os outros 43 vêm ordenados pelo Y do ponto inicial, de
- * cima para baixo. Assim o desenho acende como uma varredura e não como pipoca.
- * Mexer na ordem muda a coreografia, não o desenho.
- *
- * ⚠️ Cada traço é desenhado com `pathLength={1}`: o navegador normaliza o
- * comprimento real para 1, então `strokeDasharray=1` e `strokeDashoffset` de
- * 1 a 0 desenham a linha inteira sem ninguém precisar medir nada com
- * `getTotalLength()`. É o que deixa isto funcionar sem JS de medição.
- */
+/** O sinal do Homem-Aranha — o desenho da tela de carregamento. */
 
 export const SINAL_ARANHA = {
   viewBox: "0 0 255.1 255.1",

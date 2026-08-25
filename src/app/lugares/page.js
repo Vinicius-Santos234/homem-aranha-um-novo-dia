@@ -16,9 +16,6 @@ export default function LugaresPage() {
         <Link href="/" aria-label="Um Novo Dia — início" className="text-bone">
           <Logo />
         </Link>
-        {/* `whitespace-nowrap`: com o texto inteiro a pílula quebrava em duas
-            linhas num celular de 390px. No lugar de deixar quebrar, o rótulo
-            encurta — o ← já diz para onde vai. */}
         <Link
           href="/#lugares"
           className="eyebrow shrink-0 whitespace-nowrap rounded-full border border-bone/25 px-4 py-3 text-bone-dim transition-colors hover:border-bone/60 hover:text-bone sm:px-5"
@@ -38,21 +35,7 @@ export default function LugaresPage() {
         </p>
       </div>
 
-      {/* ---- o mural ----
-          A grade deixa de flutuar no preto e passa a estar PRESA em alguma
-          coisa. Os cartões já eram polaroides e ganharam fita, clipe e
-          alfinete; faltava a prancha.
-
-          ⚠️ As pontas fecham no `void` com gradiente, e não com uma aresta.
-          Uma prancha de cortiça que começa e termina num corte reto lê como
-          `<div>` colorida; dissolvendo, ela vira o pedaço de parede que a
-          página atravessa. É o mesmo recurso que a `ChamadaLugares` usa para
-          emendar a seção da cidade no capítulo anterior.
-
-          ⚠️ `isolate` no pai: o `::after` da textura usa `mix-blend-mode:
-          overlay`, e sem contexto de empilhamento próprio ele mistura com o
-          que estiver atrás da página inteira — ver
-          `mix-blend-mode-e-contexto-de-empilhamento` na cabeça do projeto. */}
+      {/* ---- o mural ---- */}
       <div className="relative isolate mt-20 lg:mt-28">
         <div aria-hidden className="cortica absolute inset-0 -z-10" />
         <div

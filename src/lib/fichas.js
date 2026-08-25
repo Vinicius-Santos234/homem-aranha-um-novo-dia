@@ -1,43 +1,4 @@
-/**
- * As fichas do Controle de Danos.
- *
- * Uma por capítulo, impressa POR CIMA DA CAPA dele (ver `CapituloPersonagem`).
- * O número da ficha é o do capítulo que ela abre — bate com o `01 / 04` do
- * cabeçalho logo abaixo.
- *
- * ------------------------------------------------------------------
- *  POR QUE ISTO EXISTE. As emendas eram ~1.190px (1,7 tela) de chapa escura
- *  sem uma palavra, logo depois da citação — que é a batida mais forte do
- *  capítulo. Em toda a página cada bloco diz alguma coisa; ali, nada.
- *
- *  A escolha do dispositivo não é nova: a análise da referência, em 22/08, já
- *  tinha apontado "artefato do próprio mundo — o jornal / a corporação" como o
- *  equivalente aqui aos cartões-postais de turismo do GTA. Ficou dois dias sem
- *  ser construído. É isto.
- *
- *  E ele resolve o problema certo: a emenda não estava vazia de IMAGEM (o site
- *  já tem ~30 chapas esperando material — mais uma só repetiria o problema),
- *  estava vazia de INFORMAÇÃO. Ficha é texto e retângulo: não espera foto
- *  nenhuma para ficar pronta.
- *
- *  ⚠️ A PRIMEIRA TENTATIVA FOI UMA SEÇÃO SÓ PARA ISTO, e estava errada: a chapa
- *  da capa continuava vazia logo abaixo e a página crescia 2.332px. A ficha
- *  virou camada de dentro da capa — mesmo conteúdo, zero altura nova, e a
- *  chapa deixou de ser um retângulo escuro sem nada.
- * ------------------------------------------------------------------
- *
- * ⚠️ AS DUAS REGRAS DO SITE VALEM AQUI TAMBÉM. Nada fala do filme como filme,
- * e nada é inventado: cada campo aponta para algo que acontece na trama — os
- * telhados, o tanque na rua, as entradas sem arrombamento, o cofre da ilha.
- * O que é "invenção" é só a papelada em volta, que é o próprio dispositivo.
- *
- * ⚠️ NADA DO TERCEIRO ATO. Quem chega pelo site ainda não viu o fim.
- *
- * `valor` é uma lista de pedaços: string vira texto, `{ tarja: n }` vira uma
- * barra de censura com `n` caracteres de largura. É o que deixa a ficha dizer
- * e esconder na mesma linha — e o que esconde é sempre o que o departamento
- * não quer no papel.
- */
+/** As fichas do Controle de Danos. */
 
 export const FICHAS = [
   {

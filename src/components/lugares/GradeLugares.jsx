@@ -8,21 +8,7 @@ import Fixadores from "@/components/Fixadores";
 import FaixaLugar from "@/components/lugares/FaixaLugar";
 import { LUGARES } from "@/lib/lugares";
 
-/**
- * A grade da página de lugares.
- *
- * Cada lugar é um cartão-postal com moldura branca e logotipo próprio — objeto
- * do mundo, não card do site. Clicar abre a faixa horizontal daquele lugar.
- *
- * Os cinco ficam espetados num mural de cortiça (a textura `.cortica`, montada
- * na página). Cada um leva UM fixador, e os cinco são de tipos diferentes: eles
- * se veem todos de uma vez, e peça repetida a dois cartões de distância lê como
- * padrão de interface em vez de objeto largado ali. A escolha é dado, em
- * `lib/lugares.js`.
- *
- * A faixa é sobreposição e não rota: o clique não perde a posição da grade, e
- * fechar não recarrega nada.
- */
+/** A grade da página de lugares. */
 export default function GradeLugares() {
   const [aberto, setAberto] = useState(null);
 
@@ -37,10 +23,6 @@ export default function GradeLugares() {
               className="group block w-full text-left"
               aria-haspopup="dialog"
             >
-              {/* ⚠️ `relative` porque os fixadores se ancoram nele, e o
-                  `Fixadores` vai DENTRO do elemento que levanta no hover: a
-                  peça está presa ao cartão, então sobe junto. Deixar de fora
-                  faria o cartão descolar do próprio alfinete. */}
               <div
                 className="relative bg-bone p-[10px] shadow-xl shadow-black/40 transition-transform duration-300 group-hover:-translate-y-2"
                 style={{ transitionTimingFunction: "var(--ease-out-expo)" }}

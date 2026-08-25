@@ -11,18 +11,7 @@ import {
   lerConsentimentoNoServidor,
 } from "@/lib/consentimento";
 
-/**
- * O controle de "mudar de ideia", na página de privacidade.
- *
- * ⚠️ ELE EXISTE PORQUE UMA POLÍTICA QUE SÓ EXPLICA NÃO É UMA ESCOLHA. Sem um
- * jeito de voltar atrás, a faixa de consentimento é decisão de uma vez só:
- * quem clicou errado, ou mudou de ideia, teria que saber limpar o
- * `localStorage` à mão. O texto conta o que acontece; este botão é onde a
- * pessoa manda.
- *
- * Muda o estado na hora — o `<Analytics />` mora num `useSyncExternalStore` da
- * mesma loja, então desligar aqui desmonta a medição sem recarregar a página.
- */
+/** O controle de "mudar de ideia", na página de privacidade. */
 export default function EscolhaDeMedicao() {
   const escolha = useSyncExternalStore(
     assinarConsentimento,

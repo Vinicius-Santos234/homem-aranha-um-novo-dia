@@ -16,11 +16,7 @@ function Word({ word, progress, from, to, restColor, activeColor }) {
   );
 }
 
-/**
- * Revelação palavra a palavra: cada palavra tem sua própria janela dentro de
- * [from, to], com sobreposição, então a frase acende como uma onda em vez de
- * piscar inteira de uma vez.
- */
+/** Revelação palavra a palavra: cada palavra tem sua própria janela dentro de */
 export default function ScrollRevealText({
   text,
   progress,
@@ -34,15 +30,6 @@ export default function ScrollRevealText({
 }) {
   const words = useMemo(() => text.split(" "), [text]);
 
-  /* ⚠️ O passo divide por `n - 1 + overlap`, e não por `n`.
-   *
-   * Com `(to - from) / n`, a janela da ÚLTIMA palavra ia de
-   * `from + (n-1)·passo` até `+ overlap·passo` — ou seja, terminava
-   * `(overlap - 1)·passo` DEPOIS de `to`. Como o progresso satura em `to`, as
-   * últimas palavras nunca chegavam ao fim da própria transição e ficavam
-   * permanentemente meio apagadas e desfocadas, por mais que se rolasse.
-   *
-   * Com este divisor, a janela da última palavra fecha exatamente em `to`. */
   const step = (to - from) / (words.length - 1 + overlap);
   const width = step * overlap;
 

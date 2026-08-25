@@ -11,13 +11,9 @@ function hash(i, salt) {
 
 function Char({ char, progress, from, to, colorFrom, colorTo, index, salt }) {
   const span = Math.max((to - from) * 0.14, 0.01);
-  // o ponto de virada fica a um `span` de cada ponta: sorteado no intervalo
-  // inteiro, um caractere com hash perto de 1 teria a janela terminando em
-  // `to + span` e nunca voltaria à cor final — ficava apagado para sempre
   const miolo = Math.max(to - from - span * 2, 0);
   const flip = from + span + miolo * hash(index, salt);
 
-  // some e volta: é isso que dá a leitura de "estática" varrendo o texto
   const opacity = useTransform(
     progress,
     [flip - span, flip - span * 0.3, flip + span * 0.3, flip + span],
@@ -32,11 +28,7 @@ function Char({ char, progress, from, to, colorFrom, colorTo, index, salt }) {
   );
 }
 
-/**
- * Texto que se dissolve caractere a caractere conforme o scroll avança e volta
- * já na cor nova. As palavras ficam em inline-block pra quebra de linha
- * continuar acontecendo só entre palavras.
- */
+/** Texto que se dissolve caractere a caractere conforme o scroll avança e volta */
 export default function ScrollGlitchText({
   text,
   progress,
@@ -47,12 +39,6 @@ export default function ScrollGlitchText({
   className = "",
   salt = 1,
   as: Tag = "p",
-  /* Sem rolagem comandando, o texto sai pronto e na cor de chegada.
-     ⚠️ NÃO É SÓ ESTÉTICA — É O CUSTO. Este componente cria UM `motion.span`
-     por caractere, cada um com duas `useTransform` assinadas na rolagem: num
-     parágrafo inteiro são centenas de valores recalculados e escritos no DOM
-     a cada quadro. Era um dos pesos do herói no celular. Parado, ele vira um
-     nó de texto e mais nada. */
   estatico = false,
 }) {
   const words = useMemo(() => {

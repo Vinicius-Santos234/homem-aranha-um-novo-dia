@@ -4,41 +4,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { liberarEntrada } from "@/lib/entrada";
 
-/**
- * O aviso que abre o site.
- *
- * Quatro coisas que quem chega precisa saber antes de rolar: isto é portfólio
- * e não é oficial, o material é dos estúdios, os textos saíram de IA e podem
- * divergir do filme, e tem spoiler.
- *
- * ⚠️ O SPOILER VEM PRIMEIRO, e a ordem não é estética. Dos quatro avisos, é o
- * único que pede uma DECISÃO de quem está lendo — os outros três são contexto
- * que só importa depois. Um aviso de spoiler no quarto parágrafo é um aviso
- * que chega tarde.
- *
- * ⚠️ NADA DE MOLDURA DE FICÇÃO AQUI. Passou pela cabeça montar o painel como
- * mais uma ficha do Controle de Danos, que é a voz de documento do site. Não:
- * um aviso de direitos autorais fantasiado de peça da história lê como parte
- * da história, e é exatamente o que ele não pode fazer. O painel usa a
- * tipografia do site (mono, osso, carvão) e diz o que é, de fora da trama.
- */
+/** O aviso que abre o site. */
 
-/* Muda quando o texto mudar: quem já leu a versão anterior volta a ver o
-   aviso, em vez de ficar com um "li isso" que vale para outro texto.
-   2 — entrou a linha sobre o site render melhor no computador (25/08). */
 const VERSAO = "2";
 const CHAVE = "aviso-entrada";
 
-/* Tempo entre o preloader anunciar que acabou e o aviso entrar. A saída dele
-   dura 550ms; entrar antes disso poria dois painéis na tela ao mesmo tempo. */
 const DEPOIS_DO_PRELOADER = 620;
-/* Sem preloader (a rota `/lugares`), só o tempo de a página pintar. */
 const SEM_PRELOADER = 320;
 
 export default function AvisoEntrada() {
-  /* Começa fechado SEMPRE, inclusive quando já se sabe que vai abrir: ler o
-     `localStorage` durante a renderização daria HTML diferente no servidor e
-     no cliente, e a hidratação quebra. Quem decide é o efeito. */
   const [visivel, setVisivel] = useState(false);
   const botaoRef = useRef(null);
 
@@ -48,8 +22,6 @@ export default function AvisoEntrada() {
     try {
       window.localStorage.setItem(CHAVE, VERSAO);
     } catch {
-      /* modo privado, armazenamento cheio, cookies bloqueados: o aviso
-         reaparece na próxima visita, e isso é bem melhor do que estourar. */
     }
   }, []);
 
@@ -60,10 +32,6 @@ export default function AvisoEntrada() {
     } catch {
       jaLeu = false;
     }
-    /* ⚠️ QUEM JÁ LEU TAMBÉM PRECISA LIBERAR A TELA, e não pode ser aqui
-       mesmo: a tela de carregamento ainda pode estar no ar. Sem isto, o clipe
-       do herói no celular esperaria para sempre por uma liberação que nunca
-       viria — ver `lib/entrada.js`. */
     if (jaLeu) {
       const semPreloader = !document.querySelector("[data-preloader]");
       if (semPreloader) {
@@ -79,7 +47,6 @@ export default function AvisoEntrada() {
       };
     }
 
-    // o preloader só existe na home; sem ele, não há o que esperar
     const temPreloader = !!document.querySelector("[data-preloader]");
     let temporizador;
 
@@ -93,10 +60,6 @@ export default function AvisoEntrada() {
       return () => clearTimeout(temporizador);
     }
 
-    /* Rede de segurança em tempo de relógio. O preloader tem a própria guarda
-       e sempre fecha, mas se um dia ele deixar de disparar o evento o aviso
-       não pode sumir junto — ele é obrigação, não enfeite. O número é o teto
-       do preloader (2400 + 700 da guarda dele) com folga. */
     const guarda = setTimeout(() => abrir(0), 3600);
 
     const aoTerminar = () => {
@@ -117,13 +80,6 @@ export default function AvisoEntrada() {
 
     document.documentElement.classList.add("rolagem-travada");
 
-    /* ⚠️ `preventScroll` NÃO É DETALHE — SEM ELE O AVISO SE AUTOSSABOTA. O
-       painel tem `max-h-[86vh]` com rolagem própria, e num celular o texto não
-       cabe. Dar foco no botão faz o navegador ROLAR o botão para dentro da
-       tela, e como ele é o último elemento, o painel abre no fim: some o
-       título e some a linha de spoiler, que é a única que pede decisão de quem
-       está lendo. Medido em 390×660 em 25/08, depois que entrou o parágrafo
-       sobre o site render melhor no computador. */
     botaoRef.current?.focus({ preventScroll: true });
 
     const aoTeclar = (e) => {
@@ -131,9 +87,6 @@ export default function AvisoEntrada() {
         fechar();
         return;
       }
-      /* Prender o foco. O painel tem UM elemento focável, então "prender" é
-         só devolver o foco para ele — não precisa da dança de primeiro/último
-         de um diálogo com formulário. */
       if (e.key === "Tab") {
         e.preventDefault();
         botaoRef.current?.focus();
@@ -155,8 +108,6 @@ export default function AvisoEntrada() {
       aria-modal="true"
       aria-labelledby="aviso-titulo"
       aria-describedby="aviso-corpo"
-      /* z acima do preloader (100) e da faixa dos lugares (90): enquanto ele
-         estiver aberto, nada da página vai por cima. */
       className="fixed inset-0 z-[110] flex items-center justify-center overscroll-contain bg-void/85 p-5 backdrop-blur-sm"
     >
       <div className="surgir-aviso w-full max-w-[38rem] border border-bone/12 bg-carvao shadow-2xl shadow-black/70">
@@ -193,9 +144,6 @@ export default function AvisoEntrada() {
               na trama.
             </p>
 
-            {/* Último de propósito: é conselho, não ressalva. Os três de cima
-                dizem o que o site É; este diz como aproveitá-lo melhor, e só
-                serve depois que a pessoa decidiu entrar. */}
             <p>
               Ele foi feito para ser visto{" "}
               <strong className="font-semibold text-bone">no computador</strong>: a tela grande tem

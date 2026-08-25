@@ -1,129 +1,4 @@
-/**
- * Os capítulos de personagem.
- *
- * Regra do site: nada aqui fala do filme como filme. Sem ator, sem papel,
- * sem estreia. O texto descreve quem a pessoa é DENTRO da história.
- *
- * Segunda regra, desde a reescrita: nada aqui é inventado. Cada capítulo sai
- * do que acontece na trama — o sótão, as teias orgânicas, a irmã da Jean, o
- * inibidor do Banner. O que não entra é o terceiro ato: quem chega pelo site
- * ainda não viu o fim.
- *
- * Cada capítulo manda na própria cor: `acento` pinta lead, número e detalhes;
- * `fundo` é o preto tingido daquele trecho.
- *
- * ---- ONDE ENTRAM AS FOTOS ----------------------------------------------
- *
- * São SEIS vaos por personagem, e todos se preenchem AQUI — nenhum pede tocar
- * em componente. Ponha o arquivo em `public/` e escreva o caminho começando
- * com `/`:
- *
- *   | campo | onde aparece | proporção |
- *   |---|---|---|
- *   | `fundoMidia.imagem` | fundo desfocado do capítulo inteiro | qualquer |
- *   | `capa.foto` | a capa de tela cheia, atrás da ficha | 16/9 |
- *   | `galeria[].foto` | as três da galeria | o `ratio` de cada uma |
- *   | `fotoCitacao` | o plano atrás da citação | 16/9 |
- *
- * ```js
- * capa: { legenda: "...", ratio: "16 / 9", foto: "/peter-capa.jpg" },
- * galeria: [{ legenda: "...", ratio: "3 / 4", foto: "/peter-sotao.jpg" }],
- * fotoCitacao: "/peter-citacao.jpg",
- * ```
- *
- * Sem `foto`, o vão continua na chapa desenhada — dá para ir preenchendo aos
- * poucos, e o que faltar não quebra nada.
- *
- * ⚠️ `legenda` NÃO É DECORAÇÃO, E AGORA APARECE NA TELA. Com foto ela é o
- * `alt` da imagem E a legenda visível no pé da chapa (ver `Chapa.jsx`). As da
- * galeria foram reescritas em 25/08 olhando foto por foto — descrevem o que
- * está na imagem, não o plano que se imaginava para o vão. Ao trocar uma foto,
- * a legenda tem que ser trocada junto: agora ela mente para todo mundo, não só
- * para o leitor de tela.
- *
- * ⚠️ AS QUATRO `capa.legenda` SÃO PLACEHOLDER NEUTRO ("— plano de abertura do
- * capítulo"). As antigas descreviam planos específicos que não existem em
- * lugar nenhum, e como `capa.foto` continua `null` nos quatro, não havia como
- * conferir. Ao preencher a capa, escrever ali a descrição do que a foto mostra
- * — ela vira o `alt`. Legenda visível a capa não tem, de propósito: é o vão
- * que leva a ficha do Controle de Danos por cima.
- *
- * ⚠️ A capa e a citação recebem um véu preto de 45% por cima, porque tem texto
- * em cima delas. Foto clara e cheia de detalhe no meio do quadro briga com a
- * leitura — nesses dois vãos, plano mais escuro ou mais vazio funciona melhor.
- *
- * `fundoMidia` é a mídia ambiente que fica desfocada atrás do capítulo inteiro
- * (ver `FundoCapitulo.jsx`). Aceita `{ imagem }` ou `{ video, poster }`.
- * Deixando `null`, cai na chapa desenhada e o efeito continua existindo.
- *
- * Os quatro fundos são escuros o bastante para o site continuar sendo o mesmo
- * depois do herói.
- *
- * ---- OS FIXADORES E A INCLINAÇÃO ---------------------------------------
- *
- * Cada foto da galeria é prendida na página por peças de papelaria — fita,
- * clipe, alfinete, percevejo, grampo, cantoneira — e assentada um pouco fora
- * do prumo. É a mesma ideia do arranjo das faixas em `lugares.js`: a página
- * para de parecer uma grade de imagens e passa a parecer material espalhado
- * numa mesa. O desenho das peças está em `Fixadores.jsx`; a ESCOLHA é aqui.
- *
- * ```js
- * inclinacao: -1.4,                              // graus, ver a faixa útil abaixo
- * fixadores: [{ tipo: "fita", em: "topo-direita" }],
- * ```
- *
- * `tipo`: `fita` · `clipe` · `alfinete` · `percevejo` · `grampo` · `cantoneira`
- * `em`:   `topo-esquerda` · `topo` · `topo-direita` · `esquerda` · `direita`
- * `giro`: opcional, em graus — sobrescreve o giro natural da peça naquela âncora
- *
- * ⚠️ NADA AQUI PODE SER SORTEADO, pelo mesmo motivo de `lugares.js`: o
- * servidor pinta a galeria uma vez e o cliente pinta de novo, e um
- * `Math.random()` (ou um embaralhamento por índice) dá resultado diferente
- * entre os dois e quebra a hidratação. Variedade se escreve à mão.
- *
- * ⚠️ AS QUATRO REGRAS, que o bloco no fim do arquivo confere em
- * desenvolvimento:
- *   1. no mínimo TRÊS fixadores por foto;
- *   2. dois fixadores IGUAIS na mesma foto, nunca;
- *   3. duas peças na MESMA ÂNCORA da mesma foto, nunca — elas se empilhariam;
- *   4. a mesma COMBINAÇÃO de tipos duas vezes no mesmo capítulo, nunca.
- * A 3 e a 4 são invisíveis olhando uma foto de cada vez: a 3 só aparece na
- * tela, já empilhada, e a 4 só aparece comparando as três fotos de um
- * capítulo. É por isso que existe a checagem, e não só este aviso.
- *
- * ⚠️ NÃO EXISTE ÂNCORA NO PÉ DA FOTO, e a falta é de propósito: é lá que mora
- * a legenda visível. Fixador ali cai em cima do texto.
- *
- * ⚠️ A ÂNCORA DEPENDE DE ONDE A FOTO CAI NA GRADE, e isso não dá para ver
- * daqui. A 1ª foto vai para a esquerda de tudo, a 2ª para a direita, a 3ª fica
- * solta no meio (ver `CapituloPersonagem`). Desde 25/08 a galeria tem 56px de
- * afastamento das bordas da tela, então nenhuma âncora é proibida — mas a
- * folga não é infinita, e o que gasta ela é o tipo da peça:
- *
- *   | modo | quanto sobra para fora do papel | pode no lado de fora? |
- *   |---|---|---|
- *   | monta na borda (`fita`, `clipe`) | até ~27px, e a rampa ainda cresce a chapa 6% | evitar |
- *   | atravessa (`alfinete`, `percevejo`, `grampo`) | nada, fica 24px para dentro | sim |
- *   | abraça o canto (`cantoneira`) | nada, fica inteira dentro | sim |
- *
- * "Lado de fora" é a esquerda da 1ª foto e a direita da 2ª. Na dúvida, medir:
- * o que corta é o `overflow-x: hidden` do `body`, e ele corta sem avisar.
- *
- * ⚠️ `cantoneira` SÓ EM CANTO (`topo-esquerda` ou `topo-direita`). Ela abraça
- * o vértice; no meio de uma borda vira um triângulo solto sem sentido.
- *
- * A faixa útil da inclinação aqui é **±2,5°**, e não os ±4,5° das faixas de
- * `lugares.js`. A conta é a mesma, o tamanho é que não: uma chapa da galeria
- * chega a 900px de largura, e no mesmo ângulo de uma foto de 420px ela
- * desloca o dobro. Passando de 2,5° a chapa começa a invadir a vizinha e a
- * cunha de fundo que aparece na borda da tela deixa de parecer intenção.
- *
- * Cada capítulo tem o seu ritmo, como os lugares têm o deles:
- *   · Peter — quase reto, e o mínimo de peça: ele guarda tudo com cuidado
- *   · Justiceiro — o mais reto de todos; é ficha de investigação, não álbum
- *   · Jean — o mais torto; é ela que desarruma
- *   · Hulk — uma quase reta e duas fugindo do prumo: contenção que escapa
- */
+/** Os capítulos de personagem. */
 
 export const PERSONAGENS = [
   {
@@ -143,7 +18,6 @@ export const PERSONAGENS = [
       ratio: "16 / 9",
       foto: null,
     },
-    // guardado com cuidado: quase reto, e o mínimo de peça em cada foto
     galeria: [
       {
         foto: "/spiderman111.jpg",
@@ -197,8 +71,6 @@ export const PERSONAGENS = [
       ratio: "16 / 9",
       foto: null,
     },
-    // isto é ficha de investigação, não álbum: quase sem torção, e o metal
-    // aparecendo mais que a fita
     galeria: [
       {
         foto: "/justiceiro1.jpg",
@@ -254,7 +126,6 @@ export const PERSONAGENS = [
       ratio: "16 / 9",
       foto: null,
     },
-    // a mais torta das quatro, de propósito: é ela que desarruma o resto
     galeria: [
       {
         foto: "/jeangrey1.jpg",
@@ -309,7 +180,6 @@ export const PERSONAGENS = [
       ratio: "16 / 9",
       foto: null,
     },
-    // contenção que escapa: uma quase reta e duas fugindo do prumo
     galeria: [
       {
         foto: "/hulk3.jpg",
@@ -350,23 +220,7 @@ export const PERSONAGENS = [
   },
 ];
 
-/**
- * As quatro regras dos fixadores, conferidas ao carregar o módulo.
- *
- * ⚠️ ISTO NÃO É EXCESSO DE ZELO. Duas delas são INVISÍVEIS na revisão: a da
- * combinação repetida (olhando uma foto de cada vez, cada uma está certa — só
- * quebra comparando as três, e ninguém compara de novo depois da primeira vez)
- * e a do mínimo de três (some numa lista de doze). O aviso em comentário não
- * pega; este bloco pega.
- *
- * ⚠️ E ELE SÓ VALE SE FOR TESTADO QUEBRANDO O DADO. Uma checagem calada é
- * indistinguível de uma checagem quebrada: `if` invertido, `.sort()` faltando,
- * `Set` comparado com `===` — tudo isso passa em silêncio. Ao mexer aqui,
- * plantar uma violação de cada tipo e conferir que as quatro aparecem.
- *
- * `process.env.NODE_ENV` é substituído no build, então o bloco inteiro some
- * do pacote de produção.
- */
+/** As quatro regras dos fixadores, conferidas ao carregar o módulo. */
 if (process.env.NODE_ENV !== "production") {
   const CANTOS = ["topo-esquerda", "topo-direita"];
   const MINIMO = 3;
@@ -405,8 +259,6 @@ if (process.env.NODE_ENV !== "production") {
         }
       }
 
-      // a combinação é o CONJUNTO de tipos, ordenado: {fita, clipe} e
-      // {clipe, fita} são a mesma combinação, mudou só a ordem de escrita
       const chave = [...tipos].sort().join("+");
       if (combinacoes.has(chave)) {
         console.error(

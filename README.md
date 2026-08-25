@@ -47,11 +47,13 @@ repete no mesmo capítulo", por exemplo, só quebra quando você compara as trê
 fotos. Elas são conferidas por blocos que rodam em desenvolvimento e somem do
 build de produção (`src/lib/personagens.js`, `src/lib/lugares.js`).
 
-**O comentário conta o porquê, não o quê.** O código é denso de comentários em
-português, e quase sempre eles registram uma coisa que já deu errado: a máscara
-que dissolvia a foto na foto de trás em vez de na página, a altura travada que
-cortava a citação mais longa, o `overflow` que engolia a sombra. É proposital —
-serve para a próxima pessoa (ou a próxima sessão) não refazer o mesmo caminho.
+**No celular o site é outro, e de propósito.** Não é o mesmo layout espremido:
+o herói perde a coreografia inteira e vira um cartaz parado, o clipe deixa de
+ser raspado e passa a tocar uma vez, e o texto que se revela caractere a
+caractere sai do caminho. Raspar vídeo custa uma busca — e uma decodificação —
+a cada quadro de rolagem; num telefone isso não passa. As linhas do herói ficam
+paradas no estado "agora", nunca no "antes", porque congelar no primeiro quadro
+mostraria a descrição do personagem que o filme não tem mais.
 
 ## Rodando
 

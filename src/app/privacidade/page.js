@@ -9,24 +9,7 @@ export const metadata = {
     "O que este site guarda, o que ele mede e o que você pode desligar. Sem cookies, sem conta, sem formulário.",
 };
 
-/**
- * A página de privacidade.
- *
- * ⚠️ TUDO AQUI PRECISA SER VERIFICÁVEL NO CÓDIGO. Política de privacidade é o
- * lugar mais fácil do site para escrever bonito e errado — e cada frase aqui
- * foi conferida:
- *
- *  · sem cookies: `grep` por `document.cookie` no projeto não devolve nada, e a
- *    medição da Vercel é anunciada por eles como sem cookies;
- *  · fontes não chamam o Google: `next/font/google` baixa em tempo de BUILD e
- *    serve do próprio domínio (os arquivos estão em `.next/static/media`);
- *  · não há terceiro nenhum embutido: nenhuma URL externa no `src/`;
- *  · o `localStorage` tem exatamente duas chaves, as duas listadas abaixo.
- *
- * Se alguma dessas coisas mudar, esta página vira mentira. Ao acrescentar
- * qualquer script, fonte, mapa, vídeo incorporado ou ferramenta de terceiro,
- * voltar aqui é parte do trabalho, não um extra.
- */
+/** A página de privacidade. */
 
 function Secao({ titulo, children }) {
   return (
