@@ -1,0 +1,53 @@
+ESCOPO DESTA LICENÇA — LEIA ANTES
+=================================
+
+A licença MIT abaixo cobre **apenas o código-fonte** deste repositório:
+os arquivos `.js`, `.jsx`, `.mjs`, `.css` e a configuração do projeto.
+
+Ela **NÃO** cobre o material audiovisual em `public/` e em `_arquivo/`
+(imagens `.jpg`, `.jpeg`, `.png` e vídeos `.mp4`). Esse material é derivado de
+obras de terceiros — "Homem-Aranha: Um Novo Dia", seus personagens, logotipos e
+demais elementos pertencem à Marvel Characters, Inc., à Sony Pictures
+Entertainment Inc. e aos seus respectivos detentores de direitos. Está aqui em
+um projeto não comercial, de estudo e portfólio, sem qualquer vínculo ou
+autorização oficial. O titular deste repositório não detém esses direitos e,
+portanto, não pode licenciá-los a ninguém.
+
+Se você for reaproveitar algo daqui: o código é seu para usar, nos termos
+abaixo. As imagens e os vídeos, não — troque por material próprio.
+
+SCOPE OF THIS LICENSE — READ FIRST
+==================================
+
+The MIT license below covers **only the source code** in this repository.
+It does **NOT** cover the media files in `public/` and `_arquivo/`. Those are
+derived from third-party works: "Spider-Man: Brand New Day", its characters,
+logos and related elements belong to Marvel Characters, Inc., Sony Pictures
+Entertainment Inc. and their respective rights holders. They appear here in a
+non-commercial study/portfolio project, with no official affiliation or
+authorization. The repository owner does not hold those rights and cannot
+license them to anyone. Reuse the code, not the media.
+
+---------------------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 2026 Vinicius Santos
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
