@@ -1,4 +1,5 @@
 import { Anton, Poppins } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import AvisoEntrada from "@/components/AvisoEntrada";
 import Consentimento from "@/components/Consentimento";
 import VoltarAoTopo from "@/components/VoltarAoTopo";
@@ -30,6 +31,7 @@ export default function RootLayout({ children }) {
         <VoltarAoTopo />
         <AvisoEntrada />
         <Consentimento />
+        <SpeedInsights />
       </body>
     </html>
   );
